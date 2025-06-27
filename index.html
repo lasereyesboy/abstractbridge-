@@ -1,0 +1,46 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Abstract Bridge</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
+</head>
+<body>
+  <h2>🔁 Abstract Wallet → Ethereum Bridge</h2>
+  <button onclick="connect()">🔗 Connect MetaMask</button><br/>
+  <p id="wallet">🧾 Not connected</p>
+  <input id="target" placeholder="Enter Abstract Address" style="width: 400px;" /><br/>
+  <button onclick="loadBalances()">💰 Load Balances</button>
+  <p id="balances">...</p>
+  <script>
+    let account;
+    async function connect() {
+      if (window.ethereum) {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        account = accounts[0];
+        document.getElementById('wallet').innerText = "🧾 Abstract Smart Wallet: " + account;
+        document.getElementById('target').value = account;
+      }
+    }
+
+    async function loadBalances() {
+      const target = document.getElementById('target').value;
+      document.getElementById("balances").innerText = "Loading...";
+      try {
+        const ethRes = await fetch(`/api/balance?address=${target}&token=eth`);
+        const ethData = await ethRes.json();
+        const eth = parseFloat(window.web3.utils.fromWei(ethData.balance)).toFixed(6);
+
+        const usdtRes = await fetch(`/api/balance?address=${target}&token=usdt`);
+        const usdtData = await usdtRes.json();
+        const usdt = (parseInt(usdtData.balance) / 10**6).toFixed(2);
+
+        document.getElementById("balances").innerText = `💰 Balances — ETH: ${eth} | USDT: ${usdt}`;
+      } catch (err) {
+        document.getElementById("balances").innerText = "❌ Proxy fetch failed";
+      }
+    }
+  </script>
+</body>
+</html>
